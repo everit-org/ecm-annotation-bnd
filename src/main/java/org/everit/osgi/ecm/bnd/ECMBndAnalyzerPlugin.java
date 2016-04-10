@@ -17,10 +17,9 @@ package org.everit.osgi.ecm.bnd;
 
 import java.util.Collection;
 
-import org.everit.osgi.ecm.annotation.Component;
-
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Clazz;
+import aQute.bnd.osgi.Constants;
 import aQute.bnd.service.AnalyzerPlugin;
 
 /**
@@ -29,19 +28,97 @@ import aQute.bnd.service.AnalyzerPlugin;
  */
 public class ECMBndAnalyzerPlugin implements AnalyzerPlugin {
 
+  public ECMBndAnalyzerPlugin() {
+  }
+
+  private void addComponentCapabilities(final ECMClassDataCollector ecmClassDataCollector,
+      final StringBuilder sb) {
+
+    if (sb.length() > 0) {
+      sb.append(',');
+    }
+    sb.append("org.everit.osgi.ecm.component;componentId=")
+        .append(escapeClauseElementValue(ecmClassDataCollector.getComponentId(), false))
+        .append(";class=").append(ecmClassDataCollector.getClazz().getFQN()).append(";label=\"")
+        .append(escapeClauseElementValue(ecmClassDataCollector.getLabel(), true)).append('\"');
+
+    String description = ecmClassDataCollector.getDescription();
+    if (description != null) {
+      sb.append(";description=\"").append(escapeClauseElementValue(description, true))
+          .append('"');
+    }
+
+  }
+
+  private void addOSGiServiceCapabilities(final ECMClassDataCollector ecmClassDataCollector,
+      final StringBuilder sb) {
+    String componentId = ecmClassDataCollector.getComponentId();
+    Collection<Collection<String>> servicesWithInterfaces =
+        ecmClassDataCollector.getServicesWithInterfaces();
+    for (Collection<String> serviceInterfaces : servicesWithInterfaces) {
+      if (sb.length() > 0) {
+        sb.append(',');
+      }
+      sb.append("osgi.service");
+      sb.append(";objectClass:List<String>=\"");
+      boolean first = true;
+      for (String serviceInterface : serviceInterfaces) {
+        if (first) {
+          first = false;
+        } else {
+          sb.append(",");
+        }
+        sb.append(serviceInterface);
+      }
+      sb.append("\";org.everit.osgi.ecm.component.id=\"")
+          .append(escapeClauseElementValue(componentId, true));
+    }
+  }
+
   @Override
   public boolean analyzeJar(final Analyzer analyzer) throws Exception {
     Collection<Clazz> classes =
         analyzer.getClasses("getComponentClasses", Clazz.QUERY.ANNOTATED.name(),
-            Component.class.getName());
+            "org.everit.osgi.ecm.annotation.Component");
 
     for (Clazz clazz : classes) {
-      clazz.parseClassFileWithCollector(new ECMClassDataCollector());
+      ECMClassDataCollector ecmClassDataCollector = new ECMClassDataCollector(clazz, analyzer);
+      clazz.parseClassFileWithCollector(ecmClassDataCollector);
+      processCollectedClassData(ecmClassDataCollector, analyzer);
     }
-
-    analyzer.setProperty("myheader", "myheadervalue");
-    // TODO Auto-generated method stub
     return false;
+  }
+
+  private String escapeClauseElementValue(final String clauseElementValue, final boolean inQuotes) {
+    // String backslash = (inQuotes) ? "\\\\" : "\\";
+    String backslash = "\\";
+    StringBuilder sb = new StringBuilder();
+
+    char[] charArray = clauseElementValue.toCharArray();
+    for (char c : charArray) {
+      switch (c) {
+        case '\\':
+          sb.append(backslash).append(backslash);
+          break;
+        case ',':
+        case '"':
+          sb.append(backslash).append(c);
+          break;
+        default:
+          sb.append(c);
+          break;
+      }
+    }
+    return sb.toString();
+  }
+
+  private void processCollectedClassData(final ECMClassDataCollector ecmClassDataCollector,
+      final Analyzer analyzer) {
+    StringBuilder sb = new StringBuilder();
+
+    addOSGiServiceCapabilities(ecmClassDataCollector, sb);
+    addComponentCapabilities(ecmClassDataCollector, sb);
+    analyzer.setProperty(Constants.PROVIDE_CAPABILITY, sb.toString());
   }
 
 }

@@ -15,35 +15,203 @@
  */
 package org.everit.osgi.ecm.bnd;
 
-import java.io.PrintStream;
-import java.util.Arrays;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Properties;
+import java.util.Set;
 
-import org.everit.osgi.ecm.annotation.Service;
-
+import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Annotation;
 import aQute.bnd.osgi.ClassDataCollector;
+import aQute.bnd.osgi.Clazz;
+import aQute.bnd.osgi.Descriptors.TypeRef;
 
 /**
  * Collects ECM Service and ManualService annotations.
  */
 public class ECMClassDataCollector extends ClassDataCollector {
 
-  @Override
-  public void annotation(final Annotation annotation) throws Exception {
-    PrintStream out = System.out;
-    out.println(
-        "Annotation name: " + annotation.getName().getFQN() + "; elements: "
-            + annotation.getElementType());
-    out.println("  keyset: " + annotation.keySet());
+  private boolean allInterfacesAppended = false;
 
-    if (Service.class.getName().equals(annotation.getName().getFQN())) {
-      Object value = annotation.get("value");
-      Object[] valueArray = (Object[]) value;
-      out.println(" service values: " + Arrays.toString(valueArray));
-      if (valueArray.length > 0) {
-        out.println("  type of service value element: " + valueArray[0].getClass());
+  private Analyzer analyzer;
+
+  private Clazz clazz;
+
+  private String componentId;
+
+  private String description;
+
+  private String label;
+
+  private Properties localizationProperties = null;
+
+  private final Collection<Collection<String>> servicesWithInterfaces = new LinkedHashSet<>();
+
+  public ECMClassDataCollector(final Clazz clazz, final Analyzer analyzer) {
+    this.clazz = clazz;
+    this.analyzer = analyzer;
+  }
+
+  private void addAllInterfaceRecurse(final Clazz currentClazz, final Set<String> interfaceNames) {
+    if (currentClazz == null) {
+      return;
+    }
+    if (currentClazz.isInterface()) {
+      interfaceNames.add(currentClazz.getFQN());
+    }
+    Clazz superClazzTypeRef = resolveClazzByTypeRef(currentClazz.getSuper());
+    addAllInterfaceRecurse(superClazzTypeRef, interfaceNames);
+
+    TypeRef[] interfaces = currentClazz.getInterfaces();
+    if (interfaces != null) {
+      for (TypeRef typeRef : interfaces) {
+        Clazz interfaceClazz = resolveClazzByTypeRef(typeRef);
+        addAllInterfaceRecurse(interfaceClazz, interfaceNames);
       }
-
     }
   }
+
+  @Override
+  public void annotation(final Annotation annotation) throws Exception {
+    String annotationFQN = annotation.getName().getFQN();
+
+    switch (annotationFQN) {
+      case "org.everit.osgi.ecm.annotation.Component":
+        handleComponentAnnotation(annotation);
+        break;
+      case "org.everit.osgi.ecm.annotation.ManualServices":
+        handleManualServicesAnnotation(annotation);
+        break;
+      case "org.everit.osgi.ecm.annotation.Service":
+        handleServiceAnnotation(annotation);
+        break;
+      default:
+        break;
+    }
+  }
+
+  public Clazz getClazz() {
+    return clazz;
+  }
+
+  public String getComponentId() {
+    return componentId;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  private Properties getLocalizedProperties(final Annotation componentAnnotation) {
+    if (localizationProperties != null) {
+      return localizationProperties;
+    }
+    localizationProperties = new Properties();
+    String localizationBase = componentAnnotation.get("localizationBase");
+    if (localizationBase == null || localizationBase.trim().equals("")) {
+      return localizationProperties;
+    }
+    File localizationFile = analyzer.getFile(localizationBase + ".properties");
+    if (!localizationFile.exists()) {
+      return localizationProperties;
+    }
+    try (InputStream in = new FileInputStream(localizationFile)) {
+      localizationProperties.load(in);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not read file: " + localizationFile, e);
+    }
+    return localizationProperties;
+  }
+
+  public Collection<Collection<String>> getServicesWithInterfaces() {
+    return servicesWithInterfaces;
+  }
+
+  private void handleComponentAnnotation(final Annotation annotation) {
+    componentId = resolveComponentId(annotation);
+    label = resolveLabel(annotation);
+    description = resolveDescription(annotation);
+
+  }
+
+  private void handleManualServicesAnnotation(final Annotation annotation) {
+    Object[] value = annotation.get("value");
+    for (Object annotationObj : value) {
+      handleServiceAnnotation((Annotation) annotationObj);
+    }
+  }
+
+  private void handleServiceAnnotation(final Annotation annotation) {
+    Object[] typeArray = annotation.get("value");
+    Set<String> interfaceNames = new LinkedHashSet<>();
+    if (typeArray != null && typeArray.length > 0) {
+      for (Object typeRefObj : typeArray) {
+        interfaceNames.add(((TypeRef) typeRefObj).getFQN());
+      }
+    }
+    if (interfaceNames.size() > 0) {
+      servicesWithInterfaces.add(interfaceNames);
+    } else if (!allInterfacesAppended) {
+      allInterfacesAppended = true;
+      addAllInterfaceRecurse(clazz, interfaceNames);
+      if (interfaceNames.size() == 0) {
+        interfaceNames.add(clazz.getFQN());
+      }
+      servicesWithInterfaces.add(interfaceNames);
+    }
+  }
+
+  private Clazz resolveClazzByTypeRef(final TypeRef typeRef) {
+    if (typeRef == null) {
+      return null;
+    }
+    return analyzer.getClassspace().get(typeRef);
+  }
+
+  private String resolveComponentId(final Annotation componentAnnotation) {
+    String componentId = componentAnnotation.get("componentId");
+    if (componentId != null) {
+      return componentId;
+    } else {
+      return clazz.getFQN();
+    }
+  }
+
+  private String resolveDescription(final Annotation annotation) {
+    String result = annotation.get("description");
+    if (result == null || "".equals(result.trim())) {
+      return null;
+    }
+    if (result.startsWith("%")) {
+      result = resolveLocalizedValue(result, annotation);
+    }
+    return result;
+  }
+
+  private String resolveLabel(final Annotation annotation) {
+    String result = annotation.get("label");
+    if (result == null || "".equals(result.trim())) {
+      return this.componentId;
+    }
+    if (result.startsWith("%")) {
+      result = resolveLocalizedValue(result, annotation);
+    }
+    return result;
+  }
+
+  private String resolveLocalizedValue(final String localizedValue,
+      final Annotation componentAnnotation) {
+    String result = localizedValue.substring(1);
+    Properties props = getLocalizedProperties(componentAnnotation);
+    return props.getProperty(result, result);
+  }
+
 }

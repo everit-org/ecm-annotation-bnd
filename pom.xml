@@ -93,14 +93,27 @@
   <dependencies>
     <dependency>
       <groupId>biz.aQute.bnd</groupId>
-      <artifactId>biz.aQute.bnd</artifactId>
+      <artifactId>biz.aQute.bndlib</artifactId>
       <version>3.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.everit.osgi</groupId>
       <artifactId>org.everit.osgi.ecm.annotation</artifactId>
-      <version>2.1.0</version>
+      <version>3.0.0</version>
+      <scope>test</scope>
+    </dependency>
+<!--     <dependency> -->
+<!--       <groupId>org.osgi</groupId> -->
+<!--       <artifactId>org.osgi.namespace.service</artifactId> -->
+<!--       <version>1.0.0</version> -->
+<!--     </dependency> -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
