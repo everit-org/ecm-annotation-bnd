@@ -15,11 +15,22 @@
  */
 package org.everit.osgi.ecm.annotation.bnd;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.Serializable;
+
 import org.everit.osgi.ecm.annotation.Component;
 import org.everit.osgi.ecm.annotation.Service;
 
-@Component
+@Component(componentId = "short")
 @Service
-public class ServiceWithoutInterfacesDefinitionComponent {
+public class AllInterfacesServiceComponent implements Serializable, Closeable {
+
+  private static final long serialVersionUID = 1L;
+
+  @Override
+  public void close() throws IOException {
+    // do nothing
+  }
 
 }

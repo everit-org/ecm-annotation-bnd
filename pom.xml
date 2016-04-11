@@ -23,12 +23,12 @@
   <parent>
     <groupId>org.everit.config</groupId>
     <artifactId>org.everit.config.oss</artifactId>
-    <version>7.2.0</version>
+    <version>7.3.0</version>
   </parent>
 
   <groupId>org.everit.osgi</groupId>
   <artifactId>org.everit.osgi.ecm.annotation.bnd</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>3.0.0</version>
   <packaging>bundle</packaging>
 
   <name>Everit - ECM Bnd Plugin</name>
@@ -81,11 +81,6 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-          </instructions>
-        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -103,11 +98,6 @@
       <version>3.0.0</version>
       <scope>test</scope>
     </dependency>
-<!--     <dependency> -->
-<!--       <groupId>org.osgi</groupId> -->
-<!--       <artifactId>org.osgi.namespace.service</artifactId> -->
-<!--       <version>1.0.0</version> -->
-<!--     </dependency> -->
 
     <dependency>
       <groupId>junit</groupId>

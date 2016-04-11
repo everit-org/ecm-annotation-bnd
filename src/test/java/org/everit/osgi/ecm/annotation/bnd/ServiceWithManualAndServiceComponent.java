@@ -16,10 +16,14 @@
 package org.everit.osgi.ecm.annotation.bnd;
 
 import org.everit.osgi.ecm.annotation.Component;
+import org.everit.osgi.ecm.annotation.ManualService;
+import org.everit.osgi.ecm.annotation.ManualServices;
 import org.everit.osgi.ecm.annotation.Service;
 
-@Component
-@Service
-public class ServiceWithoutInterfacesDefinitionComponent {
+@Component(componentId = "short")
+@Service({ Byte.class, Integer.class })
+@ManualServices({ @ManualService({ Integer.class, String.class }),
+    @ManualService({ String.class, Short.class }), @ManualService({ Short.class, String.class }) })
+public class ServiceWithManualAndServiceComponent {
 
 }

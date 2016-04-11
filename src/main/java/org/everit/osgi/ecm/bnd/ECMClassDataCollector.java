@@ -15,9 +15,6 @@
  */
 package org.everit.osgi.ecm.bnd;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -29,17 +26,20 @@ import aQute.bnd.osgi.Annotation;
 import aQute.bnd.osgi.ClassDataCollector;
 import aQute.bnd.osgi.Clazz;
 import aQute.bnd.osgi.Descriptors.TypeRef;
+import aQute.bnd.osgi.Resource;
 
 /**
  * Collects ECM Service and ManualService annotations.
  */
 public class ECMClassDataCollector extends ClassDataCollector {
 
+  private static final String LOCALIZED_VALUE_PREFIX = "%";
+
   private boolean allInterfacesAppended = false;
 
-  private Analyzer analyzer;
+  private final Analyzer analyzer;
 
-  private Clazz clazz;
+  private final Clazz clazz;
 
   private String componentId;
 
@@ -110,23 +110,23 @@ public class ECMClassDataCollector extends ClassDataCollector {
     return label;
   }
 
-  private Properties getLocalizedProperties(final Annotation componentAnnotation) {
+  private Properties getLocalizedProperties(final Annotation componentAnnotation) throws Exception {
     if (localizationProperties != null) {
       return localizationProperties;
     }
     localizationProperties = new Properties();
     String localizationBase = componentAnnotation.get("localizationBase");
-    if (localizationBase == null || localizationBase.trim().equals("")) {
+    if (localizationBase == null) {
+      localizationBase = "OSGI-INF/metatype/metatype";
+    } else if (localizationBase.trim().equals("")) {
       return localizationProperties;
     }
-    File localizationFile = analyzer.getFile(localizationBase + ".properties");
-    if (!localizationFile.exists()) {
+    Resource localizationFile = analyzer.getJar().getResource(localizationBase + ".properties");
+    if (localizationFile == null) {
       return localizationProperties;
     }
-    try (InputStream in = new FileInputStream(localizationFile)) {
+    try (InputStream in = localizationFile.openInputStream()) {
       localizationProperties.load(in);
-    } catch (IOException e) {
-      throw new RuntimeException("Could not read file: " + localizationFile, e);
     }
     return localizationProperties;
   }
@@ -173,7 +173,11 @@ public class ECMClassDataCollector extends ClassDataCollector {
     if (typeRef == null) {
       return null;
     }
-    return analyzer.getClassspace().get(typeRef);
+    try {
+      return analyzer.findClass(typeRef);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private String resolveComponentId(final Annotation componentAnnotation) {
@@ -190,7 +194,7 @@ public class ECMClassDataCollector extends ClassDataCollector {
     if (result == null || "".equals(result.trim())) {
       return null;
     }
-    if (result.startsWith("%")) {
+    if (result.startsWith(LOCALIZED_VALUE_PREFIX)) {
       result = resolveLocalizedValue(result, annotation);
     }
     return result;
@@ -201,7 +205,7 @@ public class ECMClassDataCollector extends ClassDataCollector {
     if (result == null || "".equals(result.trim())) {
       return this.componentId;
     }
-    if (result.startsWith("%")) {
+    if (result.startsWith(LOCALIZED_VALUE_PREFIX)) {
       result = resolveLocalizedValue(result, annotation);
     }
     return result;
@@ -210,8 +214,13 @@ public class ECMClassDataCollector extends ClassDataCollector {
   private String resolveLocalizedValue(final String localizedValue,
       final Annotation componentAnnotation) {
     String result = localizedValue.substring(1);
-    Properties props = getLocalizedProperties(componentAnnotation);
-    return props.getProperty(result, result);
+    try {
+      Properties props = getLocalizedProperties(componentAnnotation);
+      return props.getProperty(result, result);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
   }
 
 }
