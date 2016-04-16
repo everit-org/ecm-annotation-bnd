@@ -41,6 +41,7 @@ public class ECMBndAnalyzerPlugin implements AnalyzerPlugin {
     attrs.put("componentId", ecmClassDataCollector.getComponentId());
     attrs.put("class", ecmClassDataCollector.getClazz().getFQN());
     attrs.put("label", ecmClassDataCollector.getLabel());
+    attrs.putTyped("version", ecmClassDataCollector.getVersion());
 
     String description = ecmClassDataCollector.getDescription();
     if (description != null) {
@@ -64,6 +65,7 @@ public class ECMBndAnalyzerPlugin implements AnalyzerPlugin {
 
       attrs.putTyped("objectClass", serviceInterfaces);
       attrs.put("org.everit.osgi.ecm.component.id", componentId);
+      attrs.putTyped("org.everit.osgi.ecm.component.version", ecmClassDataCollector.getVersion());
 
       Parameters parameters = new Parameters();
       parameters.put("osgi.service", attrs);

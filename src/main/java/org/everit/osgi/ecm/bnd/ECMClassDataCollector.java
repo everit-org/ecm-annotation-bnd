@@ -27,6 +27,7 @@ import aQute.bnd.osgi.ClassDataCollector;
 import aQute.bnd.osgi.Clazz;
 import aQute.bnd.osgi.Descriptors.TypeRef;
 import aQute.bnd.osgi.Resource;
+import aQute.bnd.version.Version;
 
 /**
  * Collects ECM Service and ManualService annotations.
@@ -50,6 +51,8 @@ public class ECMClassDataCollector extends ClassDataCollector {
   private Properties localizationProperties = null;
 
   private final Collection<Collection<String>> servicesWithInterfaces = new LinkedHashSet<>();
+
+  private Version version;
 
   public ECMClassDataCollector(final Clazz clazz, final Analyzer analyzer) {
     this.clazz = clazz;
@@ -135,10 +138,15 @@ public class ECMClassDataCollector extends ClassDataCollector {
     return servicesWithInterfaces;
   }
 
+  public Version getVersion() {
+    return version;
+  }
+
   private void handleComponentAnnotation(final Annotation annotation) {
     componentId = resolveComponentId(annotation);
     label = resolveLabel(annotation);
     description = resolveDescription(annotation);
+    version = resolveVersion(annotation);
 
   }
 
@@ -221,6 +229,14 @@ public class ECMClassDataCollector extends ClassDataCollector {
       throw new RuntimeException(e);
     }
 
+  }
+
+  private Version resolveVersion(final Annotation annotation) {
+    String versionValue = annotation.get("version");
+    if (versionValue == null) {
+      return new Version(analyzer.getVersion());
+    }
+    return new Version(versionValue);
   }
 
 }
