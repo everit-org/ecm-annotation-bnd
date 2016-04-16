@@ -19,7 +19,7 @@ import org.everit.osgi.ecm.annotation.Component;
 
 public class ClassThatContainsComponent {
 
-  @Component(componentId = "customId")
+  @Component(componentId = "customId", version = "1.0.1")
   public static class EmbeddedClassWithCustomIdComponent {
 
   }

@@ -87,12 +87,13 @@ public class ECMBndAnalyzerPluginTest {
         manifest.getMainAttributes().getValue(Constants.PROVIDE_CAPABILITY);
 
     Assert.assertEquals(
-        "org.everit.osgi.ecm.component;componentId=short;"
+        "org.everit.osgi.ecm.component;componentId=short;version:Version=\"0.0.0\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd.AllInterfacesServiceComponent\";"
             + "label=short,"
             + "osgi.service;objectClass:List<String>="
             + "\"java.io.Serializable,java.io.Closeable,java.lang.AutoCloseable\";"
-            + "org.everit.osgi.ecm.component.id=short",
+            + "org.everit.osgi.ecm.component.id=short;"
+            + "org.everit.osgi.ecm.component.version:Version=\"0.0.0\"",
         provideCapabilityHeader);
   }
 
@@ -105,7 +106,7 @@ public class ECMBndAnalyzerPluginTest {
         manifest.getMainAttributes().getValue(Constants.PROVIDE_CAPABILITY);
 
     Assert.assertEquals(
-        "org.everit.osgi.ecm.component;componentId=customId;"
+        "org.everit.osgi.ecm.component;componentId=customId;version:Version=\"1.0.1\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd."
             + "ClassThatContainsComponent$EmbeddedClassWithCustomIdComponent\";"
             + "label=customId",
@@ -124,7 +125,7 @@ public class ECMBndAnalyzerPluginTest {
     Assert.assertEquals(
         "org.everit.osgi.ecm.component;"
             + "componentId=\"org.everit.osgi.ecm.annotation.bnd."
-            + "LocalizedLabelAndDescriptionWithDefaultLocBaseComponent\";"
+            + "LocalizedLabelAndDescriptionWithDefaultLocBaseComponent\";version:Version=\"0.0.0\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd."
             + "LocalizedLabelAndDescriptionWithDefaultLocBaseComponent\";"
             + "label=\"Test localized label\";"
@@ -144,7 +145,7 @@ public class ECMBndAnalyzerPluginTest {
     Assert.assertEquals(
         "org.everit.osgi.ecm.component;"
             + "componentId=\"org.everit.osgi.ecm.annotation.bnd."
-            + "LocalizedLabelAndDescriptionWithMissingLocPropComponent\";"
+            + "LocalizedLabelAndDescriptionWithMissingLocPropComponent\";version:Version=\"0.0.0\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd."
             + "LocalizedLabelAndDescriptionWithMissingLocPropComponent\";"
             + "label=testLabel;"
@@ -160,19 +161,20 @@ public class ECMBndAnalyzerPluginTest {
     String provideCapabilityHeader =
         manifest.getMainAttributes().getValue(Constants.PROVIDE_CAPABILITY);
 
-    System.out.println(provideCapabilityHeader);
-
     Assert.assertEquals(
         "org.everit.osgi.ecm.component;"
-            + "componentId=short;class=\"org.everit.osgi.ecm.annotation.bnd."
-            + "ServiceWithManualAndServiceComponent\";"
+            + "componentId=short;version:Version=\"0.0.0\";"
+            + "class=\"org.everit.osgi.ecm.annotation.bnd.ServiceWithManualAndServiceComponent\";"
             + "label=short,"
             + "osgi.service;objectClass:List<String>=\"java.lang.Byte,java.lang.Integer\";"
-            + "org.everit.osgi.ecm.component.id=short,"
+            + "org.everit.osgi.ecm.component.id=short;"
+            + "org.everit.osgi.ecm.component.version:Version=\"0.0.0\","
             + "osgi.service;objectClass:List<String>=\"java.lang.Integer,java.lang.String\";"
-            + "org.everit.osgi.ecm.component.id=short,"
+            + "org.everit.osgi.ecm.component.id=short;"
+            + "org.everit.osgi.ecm.component.version:Version=\"0.0.0\","
             + "osgi.service;objectClass:List<String>=\"java.lang.String,java.lang.Short\";"
-            + "org.everit.osgi.ecm.component.id=short",
+            + "org.everit.osgi.ecm.component.id=short;"
+            + "org.everit.osgi.ecm.component.version:Version=\"0.0.0\"",
         provideCapabilityHeader);
   }
 
@@ -187,7 +189,7 @@ public class ECMBndAnalyzerPluginTest {
     Assert.assertEquals(
         "org.everit.osgi.ecm.component;"
             + "componentId=\"org.everit.osgi.ecm.annotation.bnd."
-            + "ServiceWithoutInterfacesDefinitionComponent\";"
+            + "ServiceWithoutInterfacesDefinitionComponent\";version:Version=\"0.0.0\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd."
             + "ServiceWithoutInterfacesDefinitionComponent\";"
             + "label=\"org.everit.osgi.ecm.annotation.bnd."
@@ -195,7 +197,8 @@ public class ECMBndAnalyzerPluginTest {
             + "osgi.service;objectClass:List<String>="
             + "\"org.everit.osgi.ecm.annotation.bnd.ServiceWithoutInterfacesDefinitionComponent\";"
             + "org.everit.osgi.ecm.component.id="
-            + "\"org.everit.osgi.ecm.annotation.bnd.ServiceWithoutInterfacesDefinitionComponent\"",
+            + "\"org.everit.osgi.ecm.annotation.bnd.ServiceWithoutInterfacesDefinitionComponent\";"
+            + "org.everit.osgi.ecm.component.version:Version=\"0.0.0\"",
         provideCapabilityHeader);
   }
 
@@ -209,6 +212,7 @@ public class ECMBndAnalyzerPluginTest {
     Assert.assertEquals(
         "org.everit.osgi.ecm.component;"
             + "componentId=\"org.everit.osgi.ecm.annotation.bnd.SimpleComponent\";"
+            + "version:Version=\"0.0.0\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd.SimpleComponent\";"
             + "label=\"org.everit.osgi.ecm.annotation.bnd.SimpleComponent\"",
         provideCapabilityHeader);
@@ -225,6 +229,7 @@ public class ECMBndAnalyzerPluginTest {
         "org.everit.osgi.ecm.component;"
             + "componentId="
             + "\"org.everit.osgi.ecm.annotation.bnd.StaticLabelAndDescriptionComponent\";"
+            + "version:Version=\"0.0.0\";"
             + "class=\"org.everit.osgi.ecm.annotation.bnd.StaticLabelAndDescriptionComponent\";"
             + "label=\"Test Label\";"
             + "description=\"Test Description\"",

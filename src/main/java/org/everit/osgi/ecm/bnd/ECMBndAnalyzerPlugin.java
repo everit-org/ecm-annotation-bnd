@@ -39,9 +39,9 @@ public class ECMBndAnalyzerPlugin implements AnalyzerPlugin {
 
     Attrs attrs = new Attrs();
     attrs.put("componentId", ecmClassDataCollector.getComponentId());
+    attrs.putTyped("version", ecmClassDataCollector.getVersion());
     attrs.put("class", ecmClassDataCollector.getClazz().getFQN());
     attrs.put("label", ecmClassDataCollector.getLabel());
-    attrs.putTyped("version", ecmClassDataCollector.getVersion());
 
     String description = ecmClassDataCollector.getDescription();
     if (description != null) {
